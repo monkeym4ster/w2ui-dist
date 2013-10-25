@@ -1,0 +1,11 @@
+{
+    "name"        : "w2ui",
+    "version"     : "1.1.0",
+    "homepage"    : "http://w2ui.com",
+    "main"        : "w2ui-1.1.0.min.js",
+    "author": {
+        "name"  : "Vitali Malinouski",
+        "url"   : "http://w2ui.com",
+        "email" : "vitmalina@gmail.com"
+    }
+}
