@@ -1,4 +1,4 @@
-/* w2ui 1.3.1 (c) http://w2ui.com, vitmalina@gmail.com */
+/* w2ui 1.3.2 (c) http://w2ui.com, vitmalina@gmail.com */
 var w2ui  = w2ui  || {};
 var w2obj = w2obj || {}; // expose object to be able to overwrite default functions
 
@@ -2601,7 +2601,7 @@ w2utils.keyboard = (function (obj) {
 				var eventData = this.trigger({ phase: 'before', type: 'request', target: this.name, url: url, postData: params });
 				if (eventData.isCancelled === true) { if (typeof callBack == 'function') callBack(); return false; }
 			} else {
-				var eventData = { url: this.url, postData: params };
+				var eventData = { url: url, postData: params };
 			}
 			// call server to get data
 			var obj = this;
@@ -2814,6 +2814,7 @@ w2utils.keyboard = (function (obj) {
 					'>' + edit.outTag);
 			el.find('input')
 				.w2field(edit.type, edit)
+				.on('click', function (event) { event.stopPropagation(); })
 				.on('blur', function (event) {
 					if (obj.parseField(rec, col.field) != this.value) {
 						// change event
@@ -4008,6 +4009,7 @@ w2utils.keyboard = (function (obj) {
 			return (new Date()).getTime() - time;
 
 			function mouseStart (event) {
+				if ($(event.target).parents().hasClass('w2ui-head') || $(event.target).parents().hasClass('w2ui-empty-record')) return;
 				if (obj.last.move && obj.last.move.type == 'expand') return;
 				obj.last.move = {
 					x		: event.screenX,
@@ -4536,19 +4538,17 @@ w2utils.keyboard = (function (obj) {
 			// body might be expanded by data
 			if (!this.fixedBody) {
 				// allow it to render records, then resize
-				setTimeout(function () {
-					var calculatedHeight = w2utils.getSize(columns, 'height')
-						+ w2utils.getSize($('#grid_'+ obj.name +'_records table'), 'height');
-					obj.height = calculatedHeight 
-						+ w2utils.getSize(grid, '+height')
-						+ (obj.show.header ? w2utils.getSize(header, 'height') : 0)
-						+ (obj.show.toolbar ? w2utils.getSize(toolbar, 'height') : 0)
-						+ (summary.css('display') != 'none' ? w2utils.getSize(summary, 'height') : 0)
-						+ (obj.show.footer ? w2utils.getSize(footer, 'height') : 0);
-					grid.css('height', obj.height);
-					body.css('height', calculatedHeight);
-					box.css('height', w2utils.getSize(grid, 'height') + w2utils.getSize(box, '+height'));
-				}, 1);
+				var calculatedHeight = w2utils.getSize(columns, 'height')
+					+ w2utils.getSize($('#grid_'+ obj.name +'_records table'), 'height');
+				obj.height = calculatedHeight 
+					+ w2utils.getSize(grid, '+height')
+					+ (obj.show.header ? w2utils.getSize(header, 'height') : 0)
+					+ (obj.show.toolbar ? w2utils.getSize(toolbar, 'height') : 0)
+					+ (summary.css('display') != 'none' ? w2utils.getSize(summary, 'height') : 0)
+					+ (obj.show.footer ? w2utils.getSize(footer, 'height') : 0);
+				grid.css('height', obj.height);
+				body.css('height', calculatedHeight);
+				box.css('height', w2utils.getSize(grid, 'height') + w2utils.getSize(box, '+height'));
 			} else {
 				// fixed body height
 				var calculatedHeight =  grid.height()
@@ -5501,37 +5501,39 @@ w2utils.keyboard = (function (obj) {
 		content: function (panel, data, transition) {
 			var obj = this;
 			var p = this.get(panel);
+			// if it is CSS panel
 			if (panel == 'css') {
 				$('#layout_'+ obj.name +'_panel_css').html('<style>'+ data +'</style>');
 				return true;
 			}
-			if (p == null) return false;
-			if ($('#layout_'+ this.name + '_panel2_'+ p.type).length > 0) return false;
-			$('#layout_'+ this.name + '_panel_'+ p.type).scrollTop(0);
-			if (data == null || typeof data == 'undefined') {
+			if (p === null) return false;
+			if (typeof data == 'undefined' || data === null) {
 				return p.content;
 			} else {
 				if (data instanceof jQuery) {
 					console.log('ERROR: You can not pass jQuery object to w2layout.content() method');
 					return false;
 				}
-				// remove foreign classes and styles
-				var tmp = $('#'+ 'layout_'+ this.name + '_panel_'+ panel + ' > .w2ui-panel-content');
-				var panelTop = $(tmp).position().top;
-				tmp.attr('class', 'w2ui-panel-content');
-				if (tmp.length > 0 && typeof p.style != 'undefined') tmp[0].style.cssText = p.style;
-				if (p.content == '') {
+				var pname = '#layout_'+ this.name + '_panel_'+ p.type;
+				var tmp	  = $(pname + ' > .w2ui-panel-content');
+				var panelTop = 0;
+				if (tmp.length > 0) {
+					$(pname).scrollTop(0);
+					panelTop = $(tmp).position().top;
+					tmp.attr('class', 'w2ui-panel-content');
+					if (p.style) tmp[0].style.cssText = p.style;
+				}
+				if (p.content === '') {
 					p.content = data;
-					if (!p.hidden) this.refresh(panel);
+					this.refresh(panel);
 				} else {
 					p.content = data;
 					if (!p.hidden) {
-						if (transition != null && transition != '' && typeof transition != 'undefined') {
+						if (transition !== null && transition !== '' && typeof transition != 'undefined') {
 							// apply transition
-							var nm   = 'layout_'+ this.name + '_panel_'+ p.type;
-							var div1 = $('#'+ nm + ' > .w2ui-panel-content');
+							var div1 = $(pname + ' > .w2ui-panel-content');
 							div1.after('<div class="w2ui-panel-content new-panel" style="'+ div1[0].style.cssText +'"></div>');
-							var div2 = $('#'+ nm + ' > .w2ui-panel-content.new-panel');
+							var div2 = $(pname + ' > .w2ui-panel-content.new-panel');
 							div1.css('top', panelTop);
 							div2.css('top', panelTop);
 							if (typeof data == 'object') {
@@ -5545,16 +5547,17 @@ w2utils.keyboard = (function (obj) {
 								div2.removeClass('new-panel');
 								div2.css('overflow', p.overflow);
 								// IE Hack
-								if (window.navigator.userAgent.indexOf('MSIE')) setTimeout(function () { obj.resize(); }, 100);
+								obj.resize();
+								if (window.navigator.userAgent.indexOf('MSIE') != -1) setTimeout(function () { obj.resize(); }, 100);
 							});
-						} else {
-							if (!p.hidden) this.refresh(panel);
 						}
 					}
+					this.refresh(panel);
 				}
 			}
 			// IE Hack
-			if (window.navigator.userAgent.indexOf('MSIE')) setTimeout(function () { obj.resize(); }, 100);
+			obj.resize();
+			if (window.navigator.userAgent.indexOf('MSIE') != -1) setTimeout(function () { obj.resize(); }, 100);
 			return true;
 		},
 		
@@ -5584,7 +5587,7 @@ w2utils.keyboard = (function (obj) {
 			var pan = obj.get(panel);
 			if (pan == null) return false;
 			// resize
-			$(obj.box).find(' > div .w2ui-panel').css({
+			$(obj.box).find(' > div > .w2ui-panel').css({
 				'-webkit-transition': '.35s',
 				'-moz-transition'	: '.35s',
 				'-ms-transition'	: '.35s',
@@ -5595,7 +5598,7 @@ w2utils.keyboard = (function (obj) {
 			}, 1);
 			// clean
 			setTimeout(function () { 
-				$(obj.box).find(' > div .w2ui-panel').css({
+				$(obj.box).find(' > div > .w2ui-panel').css({
 					'-webkit-transition': '0s',
 					'-moz-transition'	: '0s',
 					'-ms-transition'	: '0s',
@@ -5624,7 +5627,7 @@ w2utils.keyboard = (function (obj) {
 				if (p.resizabled) $('#layout_'+ obj.name +'_resizer_'+panel).show();
 				// resize
 				$('#layout_'+ obj.name +'_panel_'+panel).css({ 'opacity': '0' });	
-				$(obj.box).find(' > div .w2ui-panel').css({
+				$(obj.box).find(' > div > .w2ui-panel').css({
 					'-webkit-transition': '.2s',
 					'-moz-transition'	: '.2s',
 					'-ms-transition'	: '.2s',
@@ -5637,7 +5640,7 @@ w2utils.keyboard = (function (obj) {
 				}, 250);
 				// clean
 				setTimeout(function () { 
-					$(obj.box).find(' > div .w2ui-panel').css({
+					$(obj.box).find(' > div > .w2ui-panel').css({
 						'-webkit-transition': '0s',
 						'-moz-transition'	: '0s',
 						'-ms-transition'	: '0s',
@@ -5667,7 +5670,7 @@ w2utils.keyboard = (function (obj) {
 			} else {
 				$('#layout_'+ obj.name +'_resizer_'+panel).hide();
 				// hide
-				$(obj.box).find(' > div .w2ui-panel').css({
+				$(obj.box).find(' > div > .w2ui-panel').css({
 					'-webkit-transition': '.2s',
 					'-moz-transition'	: '.2s',
 					'-ms-transition'	: '.2s',
@@ -5677,7 +5680,7 @@ w2utils.keyboard = (function (obj) {
 				setTimeout(function () { obj.resize(); }, 1);
 				// clean
 				setTimeout(function () { 
-					$(obj.box).find(' > div .w2ui-panel').css({
+					$(obj.box).find(' > div > .w2ui-panel').css({
 						'-webkit-transition': '0s',
 						'-moz-transition'	: '0s',
 						'-ms-transition'	: '0s',
@@ -5716,7 +5719,7 @@ w2utils.keyboard = (function (obj) {
 		},
 
 		el: function (panel) {
-			var el = $('#layout_'+ this.name +'_panel_'+ panel +' .w2ui-panel-content');
+			var el = $('#layout_'+ this.name +'_panel_'+ panel +' > .w2ui-panel-content');
 			if (el.length != 1) return null;
 			return el[0];
 		},
@@ -5977,7 +5980,7 @@ w2utils.keyboard = (function (obj) {
 				if (p == null) return;
 				// apply properties to the panel
 				var el = $('#layout_'+ obj.name +'_panel_'+ panel).css({ display: p.hidden ? 'none' : 'block' });
-				el = el.find('.w2ui-panel-content');
+				el = el.find('> .w2ui-panel-content');
 				if (el.length > 0) el.css('overflow', p.overflow)[0].style.cssText += ';' + p.style;
 				if (p.resizable === true) {
 					$('#layout_'+ this.name +'_resizer_'+ panel).show(); 
@@ -5992,13 +5995,13 @@ w2utils.keyboard = (function (obj) {
 					$('#layout_'+ obj.name + '_panel_'+ p.type +' > .w2ui-panel-content').html(p.content);
 				}
 				// if there are tabs and/or toolbar - render it
-				var tmp = $(obj.box).find('#layout_'+ obj.name + '_panel_'+ p.type +' .w2ui-panel-tabs');
+				var tmp = $(obj.box).find('#layout_'+ obj.name + '_panel_'+ p.type +'> .w2ui-panel-tabs');
 				if (p.show.tabs) { 
 					if (tmp.find('[name='+ p.tabs.name +']').length == 0 && p.tabs != null) tmp.w2render(p.tabs); else p.tabs.refresh(); 
 				} else {
 					tmp.html('').removeClass('w2ui-tabs').hide();
 				}
-				var tmp = $(obj.box).find('#layout_'+ obj.name + '_panel_'+ p.type +' .w2ui-panel-toolbar');
+				var tmp = $(obj.box).find('#layout_'+ obj.name + '_panel_'+ p.type +'> .w2ui-panel-toolbar');
 				if (p.show.toolbar) { 
 					if (tmp.find('[name='+ p.toolbar.name +']').length == 0 && p.toolbar != null) tmp.w2render(p.toolbar); else p.toolbar.refresh(); 
 				} else {
