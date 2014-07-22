@@ -1,6 +1,6 @@
 {
     "name"        : "w2ui",
-    "version"     : "1.4",
+    "version"     : "1.4.0",
     "homepage"    : "http://w2ui.com",
     "main"        : "w2ui-1.4.min.js",
     "ignore"      : ["bower.json"],
