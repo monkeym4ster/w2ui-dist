@@ -1,4 +1,4 @@
-/* w2ui 1.4.1 (c) http://w2ui.com, vitmalina@gmail.com */
+/* w2ui 1.4.2 (c) http://w2ui.com, vitmalina@gmail.com */
 var w2ui  = w2ui  || {};
 var w2obj = w2obj || {}; // expose object to be able to overwrite default functions
 
@@ -36,7 +36,7 @@ var w2obj = w2obj || {}; // expose object to be able to overwrite default functi
 var w2utils = (function () {
     var tmp = {}; // for some temp variables
     var obj = {
-        version  : '1.4.1',
+        version  : '1.4.2',
         settings : {
             "locale"            : "en-us",
             "date_format"       : "m/d/yyyy",
@@ -1877,24 +1877,24 @@ w2utils.keyboard = (function (obj) {
         // ----
         // properties that need to be in prototype
 
-        msgDelete    : 'Are you sure you want to delete selected records?',
-        msgNotJSON   : 'Returned data is not in valid JSON format.',
-        msgAJAXerror : 'AJAX error. See console for more details.',
-        msgRefresh   : 'Refreshing...',
+        msgDelete       : w2utils.lang('Are you sure you want to delete selected records?'),
+        msgNotJSON      : w2utils.lang('Returned data is not in valid JSON format.'),
+        msgAJAXerror    : w2utils.lang('AJAX error. See console for more details.'),
+        msgRefresh      : w2utils.lang('Refreshing...'),
 
         // for easy button overwrite
         buttons: {
-            'reload'   : { type: 'button', id: 'w2ui-reload', icon: 'w2ui-icon-reload', hint: 'Reload data in the list' },
-            'columns'  : { type: 'drop', id: 'w2ui-column-on-off', icon: 'w2ui-icon-columns', hint: 'Show/hide columns', arrow: false, html: '' },
+            'reload'   : { type: 'button', id: 'w2ui-reload', icon: 'w2ui-icon-reload', hint: w2utils.lang('Reload data in the list') },
+            'columns'  : { type: 'drop', id: 'w2ui-column-on-off', icon: 'w2ui-icon-columns', hint: w2utils.lang('Show/hide columns'), arrow: false, html: '' },
             'search'   : { type: 'html',   id: 'w2ui-search',
                             html: '<div class="w2ui-icon icon-search-down w2ui-search-down" title="'+ 'Select Search Field' +'" '+
                                   'onclick="var obj = w2ui[$(this).parents(\'div.w2ui-grid\').attr(\'name\')]; obj.searchShowFields();"></div>'
                           },
-            'search-go': { type: 'check',  id: 'w2ui-search-advanced', caption: 'Search...', hint: 'Open Search Fields' },
-            'add'      : { type: 'button', id: 'w2ui-add', caption: 'Add New', hint: 'Add new record', icon: 'w2ui-icon-plus' },
-            'edit'     : { type: 'button', id: 'w2ui-edit', caption: 'Edit', hint: 'Edit selected record', icon: 'w2ui-icon-pencil', disabled: true },
-            'delete'   : { type: 'button', id: 'w2ui-delete', caption: 'Delete', hint: 'Delete selected records', icon: 'w2ui-icon-cross', disabled: true },
-            'save'     : { type: 'button', id: 'w2ui-save', caption: 'Save', hint: 'Save changed records', icon: 'w2ui-icon-check' }
+            'search-go': { type: 'check',  id: 'w2ui-search-advanced', caption: w2utils.lang('Search...'), hint: w2utils.lang('Open Search Fields') },
+            'add'      : { type: 'button', id: 'w2ui-add', caption: w2utils.lang('Add New'), hint: w2utils.lang('Add new record'), icon: 'w2ui-icon-plus' },
+            'edit'     : { type: 'button', id: 'w2ui-edit', caption: w2utils.lang('Edit'), hint: w2utils.lang('Edit selected record'), icon: 'w2ui-icon-pencil', disabled: true },
+            'delete'   : { type: 'button', id: 'w2ui-delete', caption: w2utils.lang('Delete'), hint: w2utils.lang('Delete selected records'), icon: 'w2ui-icon-cross', disabled: true },
+            'save'     : { type: 'button', id: 'w2ui-save', caption: w2utils.lang('Save'), hint: w2utils.lang('Save changed records'), icon: 'w2ui-icon-check' }
         },
 
         add: function (record) {
@@ -3064,15 +3064,17 @@ w2utils.keyboard = (function (obj) {
         },
 
         clear: function (noRefresh) {
-            // this.offset          = 0;   // clear should not reset offset
-            // this.total           = 0;   // clear should not reset total
-            this.records            = [];
-            this.summary            = [];
-            this.last.scrollTop     = 0;
-            this.last.scrollLeft    = 0;
-            this.last.range_start   = null;
-            this.last.range_end     = null;
-            // this.last.xhr_offset = 0;    // clear should not reset offset
+            // this.offset              = 0;   // clear should not reset offset
+            // this.total               = 0;   // clear should not reset total
+            this.records                = [];
+            this.summary                = [];
+            this.last.scrollTop         = 0;
+            this.last.scrollLeft        = 0;
+            this.last.selection.indexes = [];
+            this.last.selection.columns = {};
+            this.last.range_start       = null;
+            this.last.range_end         = null;
+            this.last.xhr_offset        = 0;
             if (!noRefresh) this.refresh();
         },
 
@@ -3241,8 +3243,8 @@ w2utils.keyboard = (function (obj) {
                             '\n   EXPECTED:', { status: 'success', total: 5, records: [{ recid: 1, field: 'value' }] }, 
                             '\n         OR:', { status: 'error', message: 'error message' },
                             '\n   RECEIVED:', typeof data == 'object' ? data : xhr.responseText);
+                        obj.requestComplete('error', cmd, callBack);
                     }
-                    obj.requestComplete('error', cmd, callBack);
                     // event after
                     obj.trigger($.extend(eventData2, { phase: 'after' }));
                 });
@@ -3477,7 +3479,7 @@ w2utils.keyboard = (function (obj) {
             } else {
                 el.addClass('w2ui-editable')
                     .html('<input id="grid_'+ obj.name +'_edit_'+ recid +'_'+ column +'" '+
-                        '    type="text" style="outline: none; '+ addStyle + edit.style +'" field="'+ col.field +'" recid="'+ recid +'" '+
+                        '    type="text" style="font-family: inherit; font-size: inherit; outline: none; '+ addStyle + edit.style +'" field="'+ col.field +'" recid="'+ recid +'" '+
                         '    column="'+ column +'" '+ edit.inTag +
                         '>' + edit.outTag);
                 if (value == null) el.find('input').val(val != 'object' ? val : '');
@@ -3489,7 +3491,7 @@ w2utils.keyboard = (function (obj) {
                     var tmp = input;
                     if (edit.type == 'list') {
                         tmp = $($(input).data('w2field').helpers.focus).find('input');
-                        if (val != 'object' && val != '') tmp.val(val).css({ opacity: 1 }).prev().css({ opacity: 1 });
+                        if (typeof val != 'object' && val != '') tmp.val(val).css({ opacity: 1 }).prev().css({ opacity: 1 });
                     }
                     $(tmp).on('blur', function (event) {
                         obj.editChange.call(obj, input, index, column, event);
@@ -3635,7 +3637,8 @@ w2utils.keyboard = (function (obj) {
             };
             while (true) {
                 new_val = eventData.value_new;
-                if (( typeof old_val == 'undefined' || old_val === null ? '' : String(old_val)) !== String(new_val)) {
+                if ((typeof new_val != 'object' && String(old_val) != String(new_val)) || 
+                    (typeof new_val == 'object' && (typeof old_val != 'object' || new_val.id != old_val.id))) {
                     // change event
                     eventData = this.trigger($.extend(eventData, { type: 'change', phase: 'before' }));
                     if (eventData.isCancelled !== true) {
@@ -3692,7 +3695,7 @@ w2utils.keyboard = (function (obj) {
                     msg     : obj.msgDelete, 
                     btn_yes : { "class": 'btn-red' },
                     callBack: function (result) {
-                        if (result == 'Yes') w2ui[obj.name].delete(true);
+                        if (result == 'Yes') w2ui[obj.name]['delete'](true);
                     }
                 });
                 return;
@@ -5343,7 +5346,9 @@ w2utils.keyboard = (function (obj) {
                         '            onchange="'+
                         '                var val = this.value; '+
                         '                var fld = $(this).data(\'w2field\'); '+
+                        '                var dat = $(this).data(\'selected\'); '+
                         '                if (fld) val = fld.clean(val);'+
+                        '                if (dat != null && $.isPlainObject(dat)) val = dat.id;'+
                         '                w2ui[\''+ this.name +'\'].search(w2ui[\''+ this.name +'\'].last.field, val); '+
                         '            ">'+
                         '    </td>'+
@@ -5820,7 +5825,7 @@ w2utils.keyboard = (function (obj) {
                 if (['enum'].indexOf(s.type) != -1) {
                     var operator =  '<select id="grid_'+ this.name +'_operator_'+ i +'" onclick="event.stopPropagation();">'+
                         '    <option value="in">'+ w2utils.lang('in') +'</option>'+
-                        '    <option value="in">'+ w2utils.lang('not in') +'</option>'+
+                        '    <option value="not in">'+ w2utils.lang('not in') +'</option>'+
                         '</select>';
                 }
                 html += '<tr>'+
@@ -7410,6 +7415,7 @@ w2utils.keyboard = (function (obj) {
                         if ($(pname +'> .w2ui-panel-content').length > 0) {
                             $(pname +'> .w2ui-panel-content')
                                 .removeClass()
+                                .removeAttr('name')
                                 .addClass('w2ui-panel-content')
                                 .css('overflow', p.overflow)[0].style.cssText += ';' + p.style;
                         }
@@ -7420,6 +7426,7 @@ w2utils.keyboard = (function (obj) {
                     if ($(pname +'> .w2ui-panel-content').length > 0) {
                         $(pname +'> .w2ui-panel-content')
                             .removeClass()
+                            .removeAttr('name')
                             .addClass('w2ui-panel-content')
                             .html(p.content)
                             .css('overflow', p.overflow)[0].style.cssText += ';' + p.style;
@@ -13530,7 +13537,6 @@ var w2confirm = function (msg, title, callBack) {
                                 if (item.id == tmp_value) {
                                     value = $.extend(true, {}, item);
                                     obj.record[field.name] = value;
-                                    console.log(1);
                                     break;
                                 }
                             }

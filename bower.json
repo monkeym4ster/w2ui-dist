@@ -1,8 +1,8 @@
 {
     "name"        : "w2ui",
-    "version"     : "1.4.1",
+    "version"     : "1.4.2",
     "homepage"    : "http://w2ui.com",
-    "main"        : "w2ui-1.4.1.min.js",
+    "main"        : "w2ui-1.4.2.min.js",
     "ignore"      : ["bower.json"],
     "author": {
         "name"  : "Vitali Malinouski",
