@@ -8,5 +8,12 @@
         "name"  : "Vitali Malinouski",
         "url"   : "http://w2ui.com",
         "email" : "vitmalina@gmail.com"
-    }
+    },
+    "main": ["w2ui-1.4.2.min.js", "w2ui-1.4.2.min.css"],    
+    "scripts": [
+        "w2ui-1.4.2.min.js"
+    ],
+    "styles": [
+        "w2ui-1.4.2.min.css"
+    ]
 }
