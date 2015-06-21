@@ -4,6 +4,9 @@
     "homepage"    : "http://w2ui.com",
     "main"        : "w2ui-1.4.2.min.js",
     "ignore"      : ["bower.json"],
+    "dependencies": {
+        "jquery": "~1.10.0"
+    },
     "author": {
         "name"  : "Vitali Malinouski",
         "url"   : "http://w2ui.com",
